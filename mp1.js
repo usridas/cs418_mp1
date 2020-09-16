@@ -20,7 +20,7 @@ var vertexBuffer;
 var vertexColorBuffer;
 
 /** @global The matrix */
-var myMatrix = glMatrix.mat4.create();
+var mvMatrix = glMatrix.mat4.create();
 
 /** @global Angle */
 var degreeAngle = 0;
@@ -485,10 +485,10 @@ function animate() {
 
   //Let's add some basic affine transformations here!
   //First, we rotate on the X Axis
-  glMatrix.mat4.fromXRotation(myMatrix, degToRad(degreeAngle));
+  glMatrix.mat4.fromXRotation(mvMatrix, degToRad(degreeAngle));
   //Then, we translate along the X Axis
   vec3.set (transMove, increment, 0, 0);
-  glMatrix.mat4.translate (myMatrix, myMatrix, transMove);
+  glMatrix.mat4.translate (mvMatrix, mvMatrix, transMove);
 
   requestAnimationFrame(animate);
 }
