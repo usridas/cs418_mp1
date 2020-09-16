@@ -14,7 +14,7 @@ var canvas;
 var shaderProgram;
 
 /** @global The WebGL buffer holding the triangle */
-var vertexBuffer;
+var vertexPositionBuffer;
 
 /** @global The WebGL buffer holding the vertex colors */
 var vertexColorBuffer;
@@ -24,6 +24,9 @@ var mvMatrix = glMatrix.mat4.create();
 
 /** @global Angle */
 var degreeAngle = 0;
+
+/** @global Angle */
+var degreeAngle2 = 0;
 
 /** @global Translate */
 var transMove = vec3.create();
@@ -36,6 +39,12 @@ var minMax = 0;
 
 /** @global Translate */
 var xMove = 0;
+
+/** @global Records time last frame was rendered */
+var previousTime = 0;
+
+/** @global speed */
+var speed = 1;
 
 /**
  * Translates degrees to radians
@@ -120,8 +129,8 @@ function setupShaders() {
 }
 
 function setupBuffers() {
-  vertexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+  vertexPositionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
   var triangleVertices = [
         //Bottom right inner triangle
          0.01,  0.01,  0.0,
@@ -253,9 +262,9 @@ function setupBuffers() {
          0.15, 0.21, 0.0,
 
   ];
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.STATIC_DRAW);
-  vertexBuffer.itemSize = 3;
-  vertexBuffer.numberOfItems = 90;
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.DYNAMIC_DRAW);
+  vertexPositionBuffer.itemSize = 3;
+  vertexPositionBuffer.numberOfItems = 90;
 
   vertexColorBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
@@ -318,31 +327,6 @@ function setupBuffers() {
         0.0, 0.0, 1.0, 1.0,
         0.0, 0.0, 1.0, 1.0,
 
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-
-        //Border blue colors
         0.0, 0.0, 1.0, 1.0,
         0.0, 0.0, 1.0, 1.0,
         0.0, 0.0, 1.0, 1.0,
@@ -375,31 +359,54 @@ function setupBuffers() {
         0.0, 0.0, 1.0, 1.0,
         0.0, 0.0, 1.0, 1.0,
 
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
 
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
 
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
 
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
 
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
 
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
-        1.0, 0.5, 0.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
 
-        //Border blue colors
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+
         0.0, 0.0, 1.0, 1.0,
         0.0, 0.0, 1.0, 1.0,
         0.0, 0.0, 1.0, 1.0,
@@ -433,34 +440,35 @@ function setupBuffers() {
         0.0, 0.0, 1.0, 1.0,
   ];
 
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleColors), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleColors), gl.DYNAMIC_DRAW);
   vertexColorBuffer.itemSize = 4;
   vertexColorBuffer.numberOfItems = 90;
 }
 
 function draw() {
-
   gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
   gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute,
-                         vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                         vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
-  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute,
+  gl.vertexAttribPointer(shaderProgram.vertexColorAttribute,
                          vertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-  // Send the current  ModelView matrix to the vertex shader
   gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
-
-  gl.drawArrays(gl.TRIANGLES, 0, vertexBuffer.numberOfItems);
+  gl.drawArrays(gl.TRIANGLES, 0, vertexPositionBuffer.numberOfItems);
 }
 
 function animate() {
   draw();
-  //Increase degree by 1, so it rotates 360 degrees
+  // //Increase degree by 1, so it rotates 360 degrees
   degreeAngle = (degreeAngle + 1) % 360;
+  degreeAngle2 = (degreeAngle2 + 0.01) % 360;
+  //First, we rotate on the Y Axis
+  glMatrix.mat4.fromXRotation(mvMatrix, degToRad(degreeAngle));
+  //glMatrix.mat4.fromXRotation(mvMatrix, degToRad(degreeAngle));
   //I moves between 0 and 5
   if (xMove = 0 && minMax < 5) {
     minMax = minMax + 0.1;
@@ -481,161 +489,159 @@ function animate() {
     increment = 0.1;
   }
 
-  //Let's add some non-affine transformations here!
-  nonAffine();
+  //vec3.set (transMove, increment, 0, 0);
+  //glMatrix.mat4.fromTranslation (mvMatrix, (0,0,0));
 
-  //Let's add some basic affine transformations here!
-  //First, we rotate on the X Axis
-  glMatrix.mat4.fromXRotation(mvMatrix, degToRad(degreeAngle));
-  //Then, we translate along the X Axis
-  vec3.set (transMove, increment, 0, 0);
-  glMatrix.mat4.translate (mvMatrix, mvMatrix, transMove);
+  nonAffine();
 
   requestAnimationFrame(animate);
 }
 
 function nonAffine() {
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
   var triangleVertices = [
         //Bottom right inner triangle
-         0.01 + Math.cos(degreeAngle),  0.01,  0.0,
-         0.14 - Math.cos(degreeAngle),  0.01,  0.0,
-         0.14 - Math.cos(degreeAngle),  0.05,  0.0,
+         0.01 + 0.25*Math.cos(degreeAngle2),  0.01,  0.0,
+         0.14 + 0.25*Math.cos(degreeAngle2),  0.01,  0.0,
+         0.14 + 0.25*Math.cos(degreeAngle2),  0.05,  0.0,
          //Bottom left inner triangle
-         0.01 + Math.cos(degreeAngle),  0.01,  0.0,
-         0.01 + Math.cos(degreeAngle),  0.05,  0.0,
-         0.14 - Math.cos(degreeAngle),  0.05,  0.0,
+         0.01 + 0.25*Math.cos(degreeAngle2),  0.01,  0.0,
+         0.01 + 0.25*Math.cos(degreeAngle2),  0.05,  0.0,
+         0.14 + 0.25*Math.cos(degreeAngle2),  0.05,  0.0,
          //Middle right inner triangle
-         0.05 + Math.cos(degreeAngle), 0.05, 0.0,
-         0.10 - Math.cos(degreeAngle), 0.05, 0.0,
-         0.10 - Math.cos(degreeAngle), 0.16, 0.0,
+         0.05 + 0.25*Math.cos(degreeAngle2), 0.05, 0.0,
+         0.10 + 0.25*Math.cos(degreeAngle2), 0.05, 0.0,
+         0.10 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
          //Middle left inner triangle
-         0.05 + Math.cos(degreeAngle), 0.05, 0.0,
-         0.05 + Math.cos(degreeAngle), 0.16, 0.0,
-         0.10 - Math.cos(degreeAngle), 0.16, 0.0,
+         0.05 + 0.25*Math.cos(degreeAngle2), 0.05, 0.0,
+         0.05 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
+         0.10 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
          //Top right inner triangle
-         0.01 + Math.cos(degreeAngle), 0.16, 0.0,
-         0.14 - Math.cos(degreeAngle), 0.16, 0.0,
-         0.14 - Math.cos(degreeAngle), 0.20, 0.0,
+         0.01 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
+         0.14 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
+         0.14 - 0.25*Math.cos(degreeAngle2), 0.20, 0.0,
          //Top left inner triangle
-         0.01 + Math.cos(degreeAngle), 0.16, 0.0,
-         0.01 + Math.cos(degreeAngle), 0.20, 0.0,
-         0.14 - Math.cos(degreeAngle), 0.20, 0.0,
+         0.01 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
+         0.01 - 0.25*Math.cos(degreeAngle2), 0.20, 0.0,
+         0.14 - 0.25*Math.cos(degreeAngle2), 0.20, 0.0,
 
          //Bottom margin triangle (right)
-         0.0 + Math.cos(degreeAngle), 0.0, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.0, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.01, 0.0,
+         0.0 + 0.25*Math.cos(degreeAngle2), 0.0, 0.0,
+         0.15 + 0.25*Math.cos(degreeAngle2), 0.0, 0.0,
+         0.15 + 0.25*Math.cos(degreeAngle2), 0.01, 0.0,
          //Bottom margin triangle (left)
-         0.0 + Math.cos(degreeAngle), 0.0, 0.0,
-         0.0 + Math.cos(degreeAngle), 0.01, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.01, 0.0,
+         0.0 + 0.25*Math.cos(degreeAngle2), 0.0, 0.0,
+         0.0 + 0.25*Math.cos(degreeAngle2), 0.01, 0.0,
+         0.15 + 0.25*Math.cos(degreeAngle2), 0.01, 0.0,
          //Lower side margins
-         0.0 + Math.cos(degreeAngle), 0.01, 0.0,
-         0.01 + Math.cos(degreeAngle), 0.01, 0.0,
-         0.01 - Math.cos(degreeAngle), 0.05, 0.0,
+         0.0 + 0.25*Math.cos(degreeAngle2), 0.01, 0.0,
+         0.01 + 0.25*Math.cos(degreeAngle2), 0.01, 0.0,
+         0.01 + 0.25*Math.cos(degreeAngle2), 0.05, 0.0,
 
-         0.0 + Math.cos(degreeAngle), 0.01, 0.0,
-         0.0 + Math.cos(degreeAngle), 0.05, 0.0,
-         0.01 - Math.cos(degreeAngle), 0.05, 0.0,
+         0.0 + 0.25*Math.cos(degreeAngle2), 0.01, 0.0,
+         0.0 + 0.25*Math.cos(degreeAngle2), 0.05, 0.0,
+         0.01 + 0.25*Math.cos(degreeAngle2), 0.05, 0.0,
 
-         0.14 + Math.cos(degreeAngle), 0.01, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.01, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.05, 0.0,
+         0.14 + 0.25*Math.cos(degreeAngle2), 0.01, 0.0,
+         0.15 + 0.25*Math.cos(degreeAngle2), 0.01, 0.0,
+         0.15 + 0.25*Math.cos(degreeAngle2), 0.05, 0.0,
 
-         0.14 + Math.cos(degreeAngle), 0.01, 0.0,
-         0.14 - Math.cos(degreeAngle), 0.05, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.05, 0.0,
+         0.14 + 0.25*Math.cos(degreeAngle2), 0.01, 0.0,
+         0.14 + 0.25*Math.cos(degreeAngle2), 0.05, 0.0,
+         0.15 + 0.25*Math.cos(degreeAngle2), 0.05, 0.0,
 
          //Top of bottom margins lol
-         0.0 + Math.cos(degreeAngle), 0.05, 0.0,
-         0.05 + Math.cos(degreeAngle), 0.05, 0.0,
-         0.05 - Math.cos(degreeAngle), 0.06, 0.0,
+         0.0 + 0.25*Math.cos(degreeAngle2), 0.05, 0.0,
+         0.05 + 0.25*Math.cos(degreeAngle2), 0.05, 0.0,
+         0.05 + 0.25*Math.cos(degreeAngle2), 0.06, 0.0,
 
-         0.0 + Math.cos(degreeAngle), 0.05, 0.0,
-         0.0 + Math.cos(degreeAngle), 0.06, 0.0,
-         0.05 - Math.cos(degreeAngle), 0.06, 0.0,
+         0.0 + 0.25*Math.cos(degreeAngle2), 0.05, 0.0,
+         0.0 + 0.25*Math.cos(degreeAngle2), 0.06, 0.0,
+         0.05 + 0.25*Math.cos(degreeAngle2), 0.06, 0.0,
 
-         0.1 + Math.cos(degreeAngle), 0.05, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.05, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.06, 0.0,
+         0.1 + 0.25*Math.cos(degreeAngle2), 0.05, 0.0,
+         0.15 + 0.25*Math.cos(degreeAngle2), 0.05, 0.0,
+         0.15 + 0.25*Math.cos(degreeAngle2), 0.06, 0.0,
 
-         0.1 + Math.cos(degreeAngle), 0.05, 0.0,
-         0.10 - Math.cos(degreeAngle), 0.06, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.06, 0.0,
+         0.1 + 0.25*Math.cos(degreeAngle2), 0.05, 0.0,
+         0.10 + 0.25*Math.cos(degreeAngle2), 0.06, 0.0,
+         0.15 + 0.25*Math.cos(degreeAngle2), 0.06, 0.0,
 
          //Middle left
-         0.04 + Math.cos(degreeAngle), 0.06, 0.0,
-         0.05 + Math.cos(degreeAngle), 0.06, 0.0,
-         0.05 - Math.cos(degreeAngle), 0.15, 0.0,
+         0.04 + 0.25*Math.cos(degreeAngle2), 0.06, 0.0,
+         0.05 + 0.25*Math.cos(degreeAngle2), 0.06, 0.0,
+         0.05 - 0.25*Math.cos(degreeAngle2), 0.15, 0.0,
 
-         0.04 + Math.cos(degreeAngle), 0.06, 0.0,
-         0.04 + Math.cos(degreeAngle), 0.15, 0.0,
-         0.05 - Math.cos(degreeAngle), 0.15, 0.0,
+         0.04 + 0.25*Math.cos(degreeAngle2), 0.06, 0.0,
+         0.04 - 0.25*Math.cos(degreeAngle2), 0.15, 0.0,
+         0.05 - 0.25*Math.cos(degreeAngle2), 0.15, 0.0,
 
          //Middle right
-         0.1 + Math.cos(degreeAngle), 0.06, 0.0,
-         0.11 - Math.cos(degreeAngle), 0.06, 0.0,
-         0.11 - Math.cos(degreeAngle), 0.15, 0.0,
+         0.1 + 0.25*Math.cos(degreeAngle2), 0.06, 0.0,
+         0.11 + 0.25*Math.cos(degreeAngle2), 0.06, 0.0,
+         0.11 - 0.25*Math.cos(degreeAngle2), 0.15, 0.0,
 
-         0.1 + Math.cos(degreeAngle), 0.06, 0.0,
-         0.10 - Math.cos(degreeAngle), 0.15, 0.0,
-         0.11 - Math.cos(degreeAngle), 0.15, 0.0,
+         0.1 + 0.25*Math.cos(degreeAngle2), 0.06, 0.0,
+         0.10 - 0.25*Math.cos(degreeAngle2), 0.15, 0.0,
+         0.11 - 0.25*Math.cos(degreeAngle2), 0.15, 0.0,
 
          //Bottom of top margins lol
-         0.0 + Math.cos(degreeAngle), 0.15, 0.0,
-         0.05 + Math.cos(degreeAngle), 0.15, 0.0,
-         0.05 - Math.cos(degreeAngle), 0.16, 0.0,
+         0.0 - 0.25*Math.cos(degreeAngle2), 0.15, 0.0,
+         0.05 - 0.25*Math.cos(degreeAngle2), 0.15, 0.0,
+         0.05 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
 
-         0.0 + Math.cos(degreeAngle), 0.15, 0.0,
-         0.0 + Math.cos(degreeAngle), 0.16, 0.0,
-         0.05 - Math.cos(degreeAngle), 0.16, 0.0,
+         0.0 - 0.25*Math.cos(degreeAngle2), 0.15, 0.0,
+         0.0 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
+         0.05 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
 
-         0.1 + Math.cos(degreeAngle), 0.15, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.15, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.16, 0.0,
+         0.1 - 0.25*Math.cos(degreeAngle2), 0.15, 0.0,
+         0.15 - 0.25*Math.cos(degreeAngle2), 0.15, 0.0,
+         0.15 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
 
-         0.1 + Math.cos(degreeAngle), 0.15, 0.0,
-         0.10 - Math.cos(degreeAngle), 0.16, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.16, 0.0,
+         0.1 - 0.25*Math.cos(degreeAngle2), 0.15, 0.0,
+         0.10 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
+         0.15 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
 
          //Upper side margins
-         0.0 + Math.cos(degreeAngle), 0.16, 0.0,
-         0.01 + Math.cos(degreeAngle), 0.16, 0.0,
-         0.01 - Math.cos(degreeAngle), 0.2, 0.0,
+         0.0 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
+         0.01 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
+         0.01 - 0.25*Math.cos(degreeAngle2), 0.2, 0.0,
 
-         0.0 + Math.cos(degreeAngle), 0.16, 0.0,
-         0.0 + Math.cos(degreeAngle), 0.2, 0.0,
-         0.01 - Math.cos(degreeAngle), 0.2, 0.0,
+         0.0 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
+         0.0 - 0.25*Math.cos(degreeAngle2), 0.2, 0.0,
+         0.01 - 0.25*Math.cos(degreeAngle2), 0.2, 0.0,
 
-         0.14 + Math.cos(degreeAngle), 0.16, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.16, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.2, 0.0,
+         0.14 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
+         0.15 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
+         0.15 - 0.25*Math.cos(degreeAngle2), 0.2, 0.0,
 
-         0.14 + Math.cos(degreeAngle), 0.16, 0.0,
-         0.14 - Math.cos(degreeAngle), 0.2, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.2, 0.0,
+         0.14 - 0.25*Math.cos(degreeAngle2), 0.16, 0.0,
+         0.14 - 0.25*Math.cos(degreeAngle2), 0.2, 0.0,
+         0.15 - 0.25*Math.cos(degreeAngle2), 0.2, 0.0,
 
          //Upper right margin
-         0.0 + Math.cos(degreeAngle), 0.2, 0.0,
-         0.15 + Math.cos(degreeAngle), 0.2, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.21, 0.0,
+         0.0 - 0.25*Math.cos(degreeAngle2), 0.2, 0.0,
+         0.15 - 0.25*Math.cos(degreeAngle2), 0.2, 0.0,
+         0.15 - 0.25*Math.cos(degreeAngle2), 0.21, 0.0,
 
          //Upper left margin
-         0.0 + Math.cos(degreeAngle), 0.2, 0.0,
-         0.0 - Math.cos(degreeAngle), 0.21, 0.0,
-         0.15 - Math.cos(degreeAngle), 0.21, 0.0,
+         0.0 - 0.25*Math.cos(degreeAngle2), 0.2, 0.0,
+         0.0 - 0.25*Math.cos(degreeAngle2), 0.21, 0.0,
+         0.15 - 0.25*Math.cos(degreeAngle2), 0.21, 0.0
 
   ];
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.DYNAMIC_DRAW);
-  vertexBuffer.itemSize = 3;
-  vertexBuffer.numberOfItems = 90;
+  vertexPositionBuffer.itemSize = 3;
+  vertexPositionBuffer.numberOfItems = 90;
 }
 
 function startup() {
+  console.log("No bugs so far...");
   canvas = document.getElementById("myGLCanvas");
   gl = createGLContext(canvas);
   setupShaders();
   setupBuffers();
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.enable(gl.DEPTH_TEST);
   requestAnimationFrame(animate);
 }
