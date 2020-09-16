@@ -40,11 +40,8 @@ var minMax = 0;
 /** @global Translate */
 var xMove = 0;
 
-/** @global Records time last frame was rendered */
-var previousTime = 0;
-
-/** @global speed */
-var speed = 1;
+/** @global Translate */
+var colorGrad = 0;
 
 /**
  * Translates degrees to radians
@@ -105,6 +102,86 @@ function degToRad(degrees) {
       return null;
     }
     return shader;
+  }
+  function setupBuffersFlame() {
+    vertexPositionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+    var triangleVertices = [
+      0,  -0.3, 0,
+      -0.2, -0.2, 0,
+      -0.3, 0,  0,
+
+      0,  -0.3, 0,
+      -0.2, 0.3, 0,
+      -0.3, 0,  0,
+
+      0,  -0.3, 0,
+      -0.2, 0.3, 0,
+      -0.1, 0.2,  0,
+
+      0,  -0.3, 0,
+      0, 0.6, 0,
+      -0.1, 0.2,  0,
+
+      0,  -0.3, 0,
+      0, 0.6, 0,
+      0.1, 0.2,  0,
+
+      0,  -0.3, 0,
+      0.2, 0.3, 0,
+      0.1, 0.2,  0,
+
+      0,  -0.3, 0,
+      0.2, 0.3, 0,
+      0.3, 0,  0,
+
+      0,  -0.3, 0,
+      0.2, -0.2, 0,
+      0.3, 0,  0
+    ];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.DYNAMIC_DRAW);
+    vertexPositionBuffer.itemSize = 3;
+    vertexPositionBuffer.numberOfItems = 24;
+
+    vertexColorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
+    var triangleColors = [
+          //Inner orange color
+          1.0, 0.5, 0.0, 1.0,
+          1.0, 0.5, 0.0, 1.0,
+          1.0, 0.5, 0.0, 1.0,
+
+          1.0, 0.25, 0.0, 1.0,
+          1.0, 0.25, 0.0, 1.0,
+          1.0, 0.25, 0.0, 1.0,
+
+          1.0, 0.5, 0.0, 1.0,
+          1.0, 0.5, 0.0, 1.0,
+          1.0, 0.5, 0.0, 1.0,
+
+          1.0, 0.25, 0.0, 1.0,
+          1.0, 0.25, 0.0, 1.0,
+          1.0, 0.25, 0.0, 1.0,
+
+          1.0, 0.25, 0.0, 1.0,
+          1.0, 0.25, 0.0, 1.0,
+          1.0, 0.25, 0.0, 1.0,
+
+          1.0, 0.5, 0.0, 1.0,
+          1.0, 0.5, 0.0, 1.0,
+          1.0, 0.5, 0.0, 1.0,
+
+          1.0, 0.25, 0.0, 1.0,
+          1.0, 0.25, 0.0, 1.0,
+          1.0, 0.25, 0.0, 1.0,
+
+          1.0, 0.5, 0.0, 1.0,
+          1.0, 0.5, 0.0, 1.0,
+          1.0, 0.5, 0.0, 1.0
+        ];
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleColors), gl.DYNAMIC_DRAW);
+      vertexColorBuffer.itemSize = 4;
+      vertexColorBuffer.numberOfItems = 27;
   }
 
 function setupShaders() {
@@ -466,6 +543,7 @@ function animate() {
   // //Increase degree by 1, so it rotates 360 degrees
   degreeAngle = (degreeAngle + 1) % 360;
   degreeAngle2 = (degreeAngle2 + 0.01) % 360;
+  colorGrad = (colorGrad + 1) % 100;
   //First, we rotate on the Y Axis
   glMatrix.mat4.fromXRotation(mvMatrix, degToRad(degreeAngle));
   //glMatrix.mat4.fromXRotation(mvMatrix, degToRad(degreeAngle));
@@ -493,8 +571,35 @@ function animate() {
   //glMatrix.mat4.fromTranslation (mvMatrix, (0,0,0));
 
   nonAffine();
+  if(document.getElementById("flame").checked == true){
+    setupShaders();
+    setupBuffersFlame();
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.enable(gl.DEPTH_TEST);
+    requestAnimationFrame(animate2);
+  }
+  else{
+    requestAnimationFrame(animate);
+  }
+}
 
-  requestAnimationFrame(animate);
+function animate2() {
+   draw();
+   degreeAngle = (degreeAngle + 1) % 360;
+   degreeAngle2 = (degreeAngle2 + 0.01) % 360;
+   colorGrad = (colorGrad + 1) % 100;
+   glMatrix.mat4.fromXRotation(mvMatrix, degToRad(0));
+   nonAffine2();
+   if (document.getElementById("logo").checked == true){
+     setupShaders();
+     setupBuffers();
+     gl.clearColor(0.0, 0.0, 0.0, 1.0);
+     gl.enable(gl.DEPTH_TEST);
+     requestAnimationFrame(animate);
+   }
+   else{
+      requestAnimationFrame(animate2);
+   }
 }
 
 function nonAffine() {
@@ -635,6 +740,48 @@ function nonAffine() {
   vertexPositionBuffer.numberOfItems = 90;
 }
 
+function nonAffine2(){
+  vertexPositionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+  var triangleVertices = [
+    0,  -0.3, 0,
+    -0.2, -0.2, 0,
+    -0.3, 0,  0,
+
+    0,  -0.3, 0,
+    -0.2 + 0.1*Math.sin(3*degreeAngle2), 0.3, 0,
+    -0.3, 0,  0,
+
+    0,  -0.3, 0,
+    -0.2 + 0.1*Math.sin(3*degreeAngle2), 0.3, 0,
+    -0.1 + 0.1*Math.sin(3*degreeAngle2), 0.2,  0,
+
+    0,  -0.3, 0,
+    0 + 0.2*Math.sin(3*degreeAngle2), 0.6, 0,
+    -0.1 + 0.1*Math.sin(3*degreeAngle2), 0.2,  0,
+
+    0,  -0.3, 0,
+    0 + 0.2*Math.sin(3*degreeAngle2), 0.6, 0,
+    0.1 + 0.1*Math.sin(3*degreeAngle2), 0.2,  0,
+
+    0,  -0.3, 0,
+    0.2 + 0.1*Math.sin(3*degreeAngle2), 0.3, 0,
+    0.1 + 0.1*Math.sin(3*degreeAngle2), 0.2,  0,
+
+    0,  -0.3, 0,
+    0.2 + 0.1*Math.sin(3*degreeAngle2), 0.3, 0,
+    0.3, 0,  0,
+
+    0,  -0.3, 0,
+    0.2, -0.2, 0,
+    0.3, 0,  0
+  ];
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.DYNAMIC_DRAW);
+  vertexPositionBuffer.itemSize = 3;
+  vertexPositionBuffer.numberOfItems = 24;
+}
+
+
 function startup() {
   console.log("No bugs so far...");
   canvas = document.getElementById("myGLCanvas");
@@ -644,4 +791,4 @@ function startup() {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.enable(gl.DEPTH_TEST);
   requestAnimationFrame(animate);
-}
+  }
