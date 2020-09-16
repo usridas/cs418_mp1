@@ -451,7 +451,8 @@ function draw() {
   gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute,
                          vertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-  gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+  // Send the current  ModelView matrix to the vertex shader
+  gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
 
   gl.drawArrays(gl.TRIANGLES, 0, vertexBuffer.numberOfItems);
 }
